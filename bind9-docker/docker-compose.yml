@@ -2,7 +2,7 @@ version: "3"
 
 services:
   bind9:
-    container_name: dns-home
+    container_name: dns-lab
     image: ubuntu/bind9:latest
     environment:
       - BIND9_USER=root
