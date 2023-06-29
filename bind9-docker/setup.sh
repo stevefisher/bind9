@@ -1,26 +1,42 @@
 #!/bin/bash
 
-# Script to insert the bind9 tsig key from vault
+# check all directories have been created
 
-file="named.conf.key"
+directories=("cache" "config" "records")
+
+for directory in "${directories[@]}"; do
+        if [[ ! -d "$directory" ]]; then
+                mkdir "$directory"
+                echo "Created directory: $directory"
+        fi
+done
+
+# Create the named.conf.key file from it's template and insert the bind9 tsig key from vault to keep it outside of source control
+
+file="./config/named.conf.key"
 search_string="TSIGKEY"
 
-if grep -q "$search_string" "$file"; then
-        if [ -z "$VAULT_TOKEN" ]; then
-                read -p "Enter the vault access token: " INPUT_VALUE
-                export VAULT_TOKEN="$INPUT_VALUE"
-                echo "Vault token has been set to $VAULT_TOKEN"
-        fi
+if [[ ! -f "$file" ]]; then
+        echo "named.conf.key has not been found"
+        if [ -z "$VAULT_TOKEN" ] || [ -z "$VAULT_ADDR" ]; then
+                if [ -z "$VAULT_TOKEN" ]; then
+                        echo "Please set the VAULT_TOKEN environment variable before running this script"
+                fi
+                if [ -z "$VAULT_ADDR" ]; then
+                        echo "Please set the VAULT_ADDR environment variable before running this script"
+                fi
+        else
+                cp $file.template $file
+                echo "named.conf.key has been created"
 
-        if [ -z "$VAULT_ADDR" ]; then
-                read -p "Enter the vault access token: " INPUT_VALUE2
-                export VAULT_ADDR="$INPUT_VALUE2"
-                echo "Vault token has been set to $VAULT_ADDR"
+                if grep -q "$search_string" "$file"; then
+                        # obtain the tsig key from vault
+                        TSIG_KEY=$(vault kv get -mount=secret -field=tsig-key bind9-tsig-key)
+                        # replace the search_string in named.conf.key with the tsig key
+                        sed -i "s#$search_string#$TSIG_KEY#" "$file"
+                        echo "named.conf.key has been configured"
+                fi
         fi
-
-        TSIG_KEY=$(vault kv get -mount=secret -field=tsig-key bind9-tsig-key)
-        sed -i "s#$search_string#$TSIG_KEY#" "$file"
-        echo "named.conf.key had been configured"
 else
-        echo "named.conf.key has already been configured"
+        echo "named.conf.key already exists"
 fi
