@@ -1,7 +1,7 @@
 $ORIGIN .
 $TTL 172800	; 2 days
 lab.techandtools.net	IN SOA	ns.lab.techandtools.net. info.techandtools.net. (
-				202306140530	; serial
+				2023061405		; serial
 				43200      		; refresh (12 hours)
 				900        		; retry (15 minutes)
 				1814400   		; expire (3 weeks)
