@@ -32,7 +32,7 @@ if [[ ! -f "$file" ]]; then
 
                 if grep -q "$search_string" "$file"; then
                         # obtain the tsig key from vault
-                        TSIG_KEY=$(vault kv get -mount=secret -field=tsig-key bind9-tsig-key)
+                        export TSIG_KEY=$(vault kv get -mount=secret -field=tsig-key bind9-tsig-key)
                         # replace the search_string in named.conf.key with the tsig key
                         sed -i "s#$search_string#$TSIG_KEY#" "$file"
                         echo "named.conf.key has been configured"
