@@ -1,28 +1,28 @@
-## DNS Authentication
+## Setup environment
 
-Create a file named credentials.auto.tfvars containing
+Before calling `./setup.sh` to retrieve secrets from Vault and configure the environment you need to set variables for Vault itself as follows:
 
-`tsig_key = "<YOUR TSIG KEY GOES HERE>"`
-
-## Configure Vault CLI
-
-`$env:VAULT_ADDR="http://172.16.1.43:8200"`
-`$env:VAULT_TOKEN= "<YOUR VAULT TOKEN GOES HERE>"`
-
-## Create AWS Creds in Vault
-
-`vault kv put -mount=secret aws_devops_3_access_and_secret_keys_test access_key=<AWS ACCESS KEY> secret_key=<AWS SECRET KEY>`
-
-## Retrieve Creds from Vault
-
-`vault kv get -mount secret -field=access_key aws_devops_3_access_and_secret_keys`
-`vault kv get -mount secret -field=secret_key aws_devops_3_access_and_secret_keys`
-
-## Initialise Terraform
-
-```powershell
-$env:AWS_ACCESS_KEY_ID="$(vault kv get -mount secret -field=access_key aws_devops_3_access_and_secret_keys)"
-$env:AWS_SECRET_ACCESS_KEY="$(vault kv get -mount secret -field=secret_key aws_devops_3_access_and_secret_keys)"
+```bash
+export VAULT_TOKEN="<YOUR TOKEN GOES HERE>"
+export VAULT_ADDR="<URL TO VAULT GOES HERE>"
 ```
 
-`terraform init -backend-config="access_key=$($env:AWS_ACCESS_KEY_ID)" -backend-config="secret_key=$($env:AWS_SECRET_ACCESS_KEY)"`
+Once that has been done you can call `./setup.sh` which will configure the variables:
+
+AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+TSIG_KEY
+
+Optionally you can skip `./setup.sh` completely and manually create the variables.
+
+## Terraform
+
+With the environment setup complete the project is ready to be initialised and requires a single variable for the tsig key which has been defined in the environment setup for us to reference.
+
+```bash
+terraform init
+
+terraform plan -var="tsig_key=$TSIG_KEY"
+
+terraform apply -var="tsig_key=$TSIG_KEY"
+```
