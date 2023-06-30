@@ -9,6 +9,7 @@ for directory in "${directories[@]}"; do
                 mkdir "$directory"
                 echo "Created directory: $directory"
         fi
+        chmod 777 $directory
 done
 
 # Create the named.conf.key file from it's template and insert the bind9 tsig key from vault to keep it outside of source control
